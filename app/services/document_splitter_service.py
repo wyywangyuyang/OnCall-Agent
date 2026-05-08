@@ -17,8 +17,8 @@ class DocumentSplitterService:
 
     def __init__(self):
         """初始化文档分割服务"""
-        self.chunk_size = config.chunk_max_size
-        self.chunk_overlap = config.chunk_overlap
+        self.chunk_size = config.chunk_max_size  # 分块大小
+        self.chunk_overlap = config.chunk_overlap   # 分块重叠大小
 
         # Markdown 标题分割（只按照一级和二级标题分割，减少分片数）
         self.markdown_splitter = MarkdownHeaderTextSplitter(
@@ -32,7 +32,7 @@ class DocumentSplitterService:
 
         # 递归字符分割器（用于二次分割，使用更大的 chunk_size）
         self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=self.chunk_size * 2,  # 二次分割时使用更大的 chunk_size
+            chunk_size=self.chunk_size * 2,  # 二次分割时使用更大的 chunk_size，加倍chunk_size，减少分片数
             chunk_overlap=self.chunk_overlap,
             length_function=len,
             is_separator_regex=True,
@@ -52,7 +52,7 @@ class DocumentSplitterService:
         Returns:
             List[Document]: 文档分片列表
         """
-        if not content or not content.strip():
+        if not content or not content.strip():  # strip()检查内容去除首尾空白后是否为空
             logger.warning(f"Markdown 文档内容为空: {file_path}")
             return []
 
@@ -138,11 +138,11 @@ class DocumentSplitterService:
         if not documents:
             return []
 
-        merged_docs = []
-        current_doc = None
+        merged_docs = []    # 合并后的文档分片列表
+        current_doc = None  # 当前文档分片
 
         for doc in documents:
-            doc_size = len(doc.page_content)
+            doc_size = len(doc.page_content)    # 文档分片大小
             if current_doc is None:
                 # 第一个文档
                 current_doc = doc
