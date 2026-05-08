@@ -16,7 +16,7 @@ dependencies = [
     "langgraph>=1.1.10",
     "dashscope>=1.25.17",
     "openai>=2.36.0",
-    "pymilvus>=3.0.0",
+    "pymilvus>=2.4.3,<3.0.0",
     "pydantic>=2.13.4",
     "pydantic-settings>=2.14.0",
     "httpx>=0.28.1",
@@ -29,11 +29,8 @@ dependencies = [
     "langchain-mcp-adapters>=0.2.2",
     "fastmcp>=3.2.4",
     "langchain-qwq>=0.3.4",
+    "langchain-milvus>=0.3.3",
 ]
-
-[[tool.uv.index]]
-url = "https://pypi.tuna.tsinghua.edu.cn/simple"
-default = true
 
 [project.optional-dependencies]
 dev = [
@@ -49,6 +46,10 @@ dev = [
     "ipython>=8.20.0",
     "ipdb>=0.13.13",
 ]
+
+[[tool.uv.index]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
