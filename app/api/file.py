@@ -69,7 +69,7 @@ async def upload_file(file: UploadFile = File(...)):
 
         logger.info(f"文件上传成功: {file_path}")
 
-        # 5. 自动创建向量索引
+        # 6. 自动创建向量索引
         try:
             logger.info(f"开始为上传文件创建向量索引: {file_path}")
             vector_index_service.index_single_file(str(file_path))
@@ -78,7 +78,7 @@ async def upload_file(file: UploadFile = File(...)):
             logger.error(f"向量索引创建失败: {file_path}, 错误: {e}")
             # 注意：即使索引失败，文件上传仍然成功，只是记录错误日志
 
-        # 6. 返回响应
+        # 7. 返回响应
         return JSONResponse(
             status_code=200,
             content={
@@ -141,9 +141,9 @@ def _get_file_extension(filename: str) -> str:
         str: 扩展名（小写，不含点）
     """
     parts = filename.rsplit(".", 1)
-    if len(parts) == 2:
-        return parts[1].lower()
-    return ""
+    if len(parts) == 2: # 检查分割后是否有两个部分
+        return parts[1].lower() # 返回扩展名并转为小写
+    return ""   # 没有扩展名时返回空字符串
 
 
 def _sanitize_filename(filename: str) -> str:
