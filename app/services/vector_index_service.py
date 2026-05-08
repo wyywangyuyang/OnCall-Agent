@@ -82,7 +82,7 @@ class VectorIndexService:
         try:
             # 使用指定目录或默认上传目录
             target_path = directory_path if directory_path else self.upload_path
-            dir_path = Path(target_path).resolve()
+            dir_path = Path(target_path).resolve()  # 将相对路径转换为绝对路径
 
             if not dir_path.exists() or not dir_path.is_dir():
                 raise ValueError(f"目录不存在或不是有效目录: {target_path}")
@@ -141,7 +141,7 @@ class VectorIndexService:
             ValueError: 文件不存在时抛出
             RuntimeError: 索引失败时抛出
         """
-        path = Path(file_path).resolve()
+        path = Path(file_path).resolve()   # 将相对路径转换为绝对路径
 
         if not path.exists() or not path.is_file():
             raise ValueError(f"文件不存在: {file_path}")
