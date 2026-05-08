@@ -21,6 +21,13 @@ class SearchResult:
         score: float,
         metadata: Dict[str, Any],
     ):
+        """
+        初始化搜搜结果
+        :param id: 文档 ID
+        :param content: 文档内容
+        :param score: 相似度分数（距离），越小越相似
+        :param metadata: 文档元数据
+        """
         self.id = id
         self.content = content
         self.score = score
@@ -75,11 +82,11 @@ class VectorSearchService:
 
             # 4. 执行搜索
             results = collection.search(
-                data=[query_vector],
-                anns_field="vector",
-                param=search_params,
-                limit=top_k,
-                output_fields=["id", "content", "metadata"],
+                data=[query_vector],    # 查询向量
+                anns_field="vector",    # 向量字段
+                param=search_params,    # 搜索参数
+                limit=top_k,            # 返回结果数量
+                output_fields=["id", "content", "metadata"],  # 返回的字段
             )
 
             # 5. 解析搜索结果
