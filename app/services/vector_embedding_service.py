@@ -50,7 +50,7 @@ class DashScopeEmbeddings(Embeddings):
             f"模型: {model}, 维度: {dimensions}, API Key: {masked_key}"
         )
 
-    @staticmethod
+    @staticmethod   # 此装饰器表示：不访问任何实例属性，仅使用输入参数进行计算
     def _mask_api_key(api_key: str) -> str:
         """掩码 API Key 用于日志"""
         if len(api_key) > 8:
