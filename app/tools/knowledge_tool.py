@@ -11,7 +11,7 @@ from app.services.vector_store_manager import vector_store_manager
 
 
 @tool(response_format="content_and_artifact")
-def retriever_knowledge(query: str) -> Tuple[str, List[Document]]:
+def retrieve_knowledge(query: str) -> Tuple[str, List[Document]]:
     """
     从知识库中检索相关信息来回答问题
 
