@@ -47,6 +47,11 @@ class Settings(BaseSettings):
     mcp_monitor_transport: str = "streamable-http"
     mcp_monitor_url: str = "http://localhost:8004/mcp"
 
+    # 腾讯云 CLS 配置
+    tencent_cloud_secret_id: str = ""
+    tencent_cloud_secret_key: str = ""
+    tencent_cloud_region: str = "ap-beijing"
+
     @property
     def mcp_servers(self) -> Dict[str, Dict[str, Any]]:
         """获取完整的 MCP 服务器配置"""
