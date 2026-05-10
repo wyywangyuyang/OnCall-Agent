@@ -59,6 +59,10 @@ def format_docs(docs: List[Document]) -> str:
     """
     formatted_parts = []
 
+    # enumerate(docs, 1) -> 对 docs 列表进行枚举,从索引 1 开始计数(而不是默认的 0)
+    # i - 当前迭代的索引号(从 1 开始)
+    # doc - 当前迭代的文档对象
+    # docs - 要遍历的文档列表
     for i, doc in enumerate(docs, 1):
         # 提取元数据
         metadata = doc.metadata
