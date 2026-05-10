@@ -63,6 +63,11 @@ def trim_messages_middleware(state: AgentState) -> dict[str, Any] | None:
 
     logger.debug(f"修剪消息历史: {len(messages)} -> {len(new_messages)} 条")
 
+    # RemoveMessage: 是 LangChain/LangGraph 中的一个特殊消息类型，用于从消息历史中删除消息
+    # REMOVE_ALL_MESSAGES: 是一个特殊的常量，表示"删除所有现有消息"
+    # 组合使用: [RemoveMessage(id=REMOVE_ALL_MESSAGES), *new_messages] 的含义是：
+    # 先删除所有旧消息
+    # 然后添加新的消息列表
     return {
         "messages": [
             RemoveMessage(id=REMOVE_ALL_MESSAGES),
@@ -273,12 +278,15 @@ class RagAgentService:
                 config=config_dict,
                 stream_mode="messages",
             ):
+                # 提取节点名称
                 node_name = metadata.get('langgraph_node', 'unknown') if isinstance(metadata, dict) else 'unknown'
+                # 获取消息类型
                 message_type = type(token).__name__
 
+                # 只处理 AI 消息
                 if message_type in ("AIMessage", "AIMessageChunk"):
+                    # 尝试从 content_blocks 获取内容
                     content_blocks = getattr(token, 'content_blocks', None)
-
                     if content_blocks and isinstance(content_blocks, list):
                         for block in content_blocks:
                             if isinstance(block, dict) and block.get('type') == 'text':
