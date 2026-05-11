@@ -2,15 +2,19 @@
 配置管理模块
 使用 Pydantic Settings 实现类型安全的配置管理
 """
+from pathlib import Path
 from typing import Dict, Any
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# 获取项目根目录（.env 文件所在目录）
+PROJECT_ROOT = Path(__file__).parent.parent
 
 class Settings(BaseSettings):
     """
     应用配置类
     """
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=PROJECT_ROOT / ".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
