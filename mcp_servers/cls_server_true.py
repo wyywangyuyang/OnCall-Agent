@@ -19,7 +19,10 @@ from tencentcloud.cls.v20201016 import cls_client, models
 # 配置日志
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers = [
+        logging.FileHandler('mcp_cls_true.log', encoding='utf-8'),
+    ]
 )
 logger = logging.getLogger("CLS_MCP_Server_True")
 
