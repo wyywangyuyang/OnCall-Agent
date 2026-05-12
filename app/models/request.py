@@ -8,14 +8,14 @@ class ChatRequest(BaseModel):
     """
     聊天请求模型
     """
-    id: str = Field(..., description="会话 ID", alias="id")
+    id: str = Field(..., description="会话 ID", alias="Id")
     question: str = Field(..., description="用户问题", alias="Question")
 
     class Config:
         populate_by_name = True
         json_schema_extra = {
             "example": {
-                "id": "session-123",
+                "Id": "session-123",
                 "Question": "什么是向量数据库？"
             }
         }
