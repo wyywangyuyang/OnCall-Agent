@@ -170,3 +170,12 @@ curl -X POST "http://localhost:9900/api/aiops" \
 3. Replanner 评估结果 → 决定继续/调整/生成报告
 4. 输出诊断报告 → 根因分析 + 运维建议
 ```
+
+### 启动和停止项目
+```
+# 启动所有服务
+.\start-windows.bat
+
+# 停止所有服务
+.\stop-windows.bat
+```
