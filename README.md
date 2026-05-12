@@ -135,6 +135,8 @@ super_biz_agent_py/
 ├── pyproject.toml                          # 项目配置（依赖、元数据）
 ├── uv.lock                                 # uv 依赖锁定文件
 ├── .gitignore                              # 忽略提交git文件配置
+├── start-windows.bat                       # 启动服务脚本
+├── stop-windows.bat                        # 停止服务脚本
 └── README.md                               # 项目说明
 ```
 
