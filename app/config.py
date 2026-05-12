@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     )
 
     # 应用配置
-    app_name: str = "oncall-agent"
+    app_name: str = "OnCall-Agent"
     app_version: str = "0.1.0"
     debug: bool = False
     host: str = "0.0.0.0"
