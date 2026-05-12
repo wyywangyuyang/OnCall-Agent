@@ -1,7 +1,7 @@
 """
 AIOps 请求和响应模型
 """
-from typing import Optional, Any
+from typing import Optional, Any, Dict
 
 from pydantic import BaseModel, Field
 
@@ -30,9 +30,9 @@ class AlterInfo(BaseModel):
 
 class DiagnosisResponse(BaseModel):
     """ 诊断响应（非流式）"""
-    code: int = 200,
-    message: str = "success",
-    data: Optional[str, Any]
+    code: int = 200
+    message: str = "success"
+    data: Dict[str, Any]
 
     class Config:
         json_schema_extra = {
