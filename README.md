@@ -1,7 +1,6 @@
 # OnCall-Agent
 
 > 企业级智能对话和运维助手，支持 RAG 知识库问答和 AIOps 智能诊断
-
 > 智能0nCall系统通过AI Agent解决团队真实痛点，整合知识库、对话、运维三大核心能力，实现问题自动应答和故障智能排查的一体化服务。致力于降低团队OnCall的人力成本，提升团队效率。前端界面基于 Vibe Coding 快速生成并适配对接。 
 
 [![Python](https://img.shields.io/badge/Python-3.13+-blue.svg)](https://www.python.org/)
@@ -26,7 +25,7 @@
 ## 🚀 快速开始
 
 ### 环境要求
-- Python 3.13+
+- Python 3.10+
 - 阿里云 DashScope API Key ([获取地址](https://dashscope.aliyun.com/))
 
 ### 访问服务
@@ -131,9 +130,6 @@ super_biz_agent_py/
 ├── uploads/                                # 上传文件临时目录
 ├── volumes/                                # Milvus 数据持久化目录
 ├── .env                                    # 环境变量配置（需手动创建）
-├── Makefile                                # 项目管理命令（Linux/macOS）
-├── start-windows.bat                       # Windows 启动脚本
-├── stop-windows.bat                        # Windows 停止脚本
 ├── vector-database.yml                     # Milvus Docker Compose 配置
 ├── pyproject.toml                          # 项目配置（依赖、元数据）
 ├── uv.lock                                 # uv 依赖锁定文件
