@@ -8,6 +8,7 @@
 import logging
 import functools
 import json
+import os
 from typing import Dict, Any, Optional, List
 from datetime import datetime, timedelta
 from fastmcp import FastMCP
@@ -17,11 +18,14 @@ from tencentcloud.common.profile.http_profile import HttpProfile
 from tencentcloud.cls.v20201016 import cls_client, models
 
 # 配置日志
+log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'logs')
+os.makedirs(log_dir, exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers = [
-        logging.FileHandler('mcp_cls_true.log', encoding='utf-8'),
+        logging.FileHandler(os.path.join(log_dir, 'mcp_cls_true.log'), encoding='utf-8'),
     ]
 )
 logger = logging.getLogger("CLS_MCP_Server_True")
