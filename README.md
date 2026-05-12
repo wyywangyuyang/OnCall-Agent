@@ -134,7 +134,7 @@ super_biz_agent_py/
 ├── vector-database.yml                     # Milvus Docker Compose 配置
 ├── pyproject.toml                          # 项目配置（依赖、元数据）
 ├── uv.lock                                 # uv 依赖锁定文件
-├── pyrightconfig.json                      # Pyright 类型检查配置
+├── .gitignore                              # 忽略提交git文件配置
 └── README.md                               # 项目说明
 ```
 
