@@ -247,7 +247,7 @@ async def _generate_response(state: PlanExecuteState, llm: ChatQwen) -> Dict[str
     input_text = state.get("input", "")
     past_steps = state.get("past_steps", [])
 
-    # 格式化执行雷士
+    # 格式化执行历史
     execution_history = "\n\n".join([
         f"### 步骤: {step}\n**结果:**\n{result}"
         for step, result in past_steps
