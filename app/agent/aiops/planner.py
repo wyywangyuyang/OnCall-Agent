@@ -119,10 +119,13 @@ async def planner(state: PlanExecuteState) -> Dict[str, Any]:
             temperature=0
         )
 
-        planner_chain = planner_prompt | llm.with_structured_output(Plan)
+        # 使用 json_mode 而非默认的 function_calling：
+        # deepseek-v4-pro 对 tool_choice 参数支持不好，function_calling 会返回空 {}，
+        # 导致 Pydantic 校验失败。json_mode 通过 response_format 实现，兼容性更好。
+        planner_chain = planner_prompt | llm.with_structured_output(Plan, method="json_mode")
 
         # 调用 LLM 生成计划
-        plan_result = await planner_chain.invoke(
+        plan_result = await planner_chain.ainvoke(
             {
                 "messages": [
                     {

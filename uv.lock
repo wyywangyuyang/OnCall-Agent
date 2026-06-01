@@ -647,6 +647,15 @@ wheels = [
 ]
 
 [[package]]
+name = "docx2txt"
+version = "0.9"
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/ea/07/4486a038624e885e227fe79111914c01f55aa70a51920ff1a7f2bd216d10/docx2txt-0.9.tar.gz", hash = "sha256:18013f6229b14909028b19aa7bf4f8f3d6e4632d7b089ab29f7f0a4d1f660e28", size = 3613, upload-time = "2025-03-24T20:59:25.21Z" }
+wheels = [
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/d6/51/756e71bec48ece0ecc2a10e921ef2756e197dcb7e478f2b43673b6683902/docx2txt-0.9-py3-none-any.whl", hash = "sha256:e3718c0653fd6f2fcf4b51b02a61452ad1c38a4c163bcf0a6fd9486cd38f529a", size = 4025, upload-time = "2025-03-24T20:59:24.394Z" },
+]
+
+[[package]]
 name = "email-validator"
 version = "2.3.0"
 source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
@@ -1867,6 +1876,7 @@ dependencies = [
     { name = "aiofiles" },
     { name = "aiohttp" },
     { name = "dashscope" },
+    { name = "docx2txt" },
     { name = "fastapi" },
     { name = "fastmcp" },
     { name = "httpx" },
@@ -1884,6 +1894,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "pymilvus" },
+    { name = "pypdf" },
     { name = "python-dotenv" },
     { name = "python-multipart" },
     { name = "sse-starlette" },
@@ -1912,6 +1923,7 @@ requires-dist = [
     { name = "aiohttp", specifier = ">=3.13.5" },
     { name = "black", marker = "extra == 'dev'", specifier = ">=23.12.0" },
     { name = "dashscope", specifier = ">=1.25.17" },
+    { name = "docx2txt", specifier = ">=0.9" },
     { name = "fastapi", specifier = ">=0.136.1" },
     { name = "fastmcp", specifier = ">=3.2.4" },
     { name = "httpx", specifier = ">=0.28.1" },
@@ -1934,6 +1946,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.13.4" },
     { name = "pydantic-settings", specifier = ">=2.14.0" },
     { name = "pymilvus", specifier = ">=2.4.3,<3.0.0" },
+    { name = "pypdf", specifier = ">=6.12.2" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.4.3" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.1.0" },
@@ -2521,6 +2534,15 @@ dependencies = [
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/28/78/68e752283ad58891687c2d9e56a09019585a31d03637af9b60bf2d396821/pymilvus-2.6.13.tar.gz", hash = "sha256:d29908d9623967be7be41c518d1fb68fe5816b9ab780af2737fd3059f2d370c0", size = 1579003, upload-time = "2026-05-07T12:08:36.179Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/15/f2/850c023173525ba02701cc0990461a67ef999825b301847ce16db9efee32/pymilvus-2.6.13-py3-none-any.whl", hash = "sha256:3098204172413f6fe7c7928652adba0e1ec70150d6e515b83da4e319b98d9e69", size = 319649, upload-time = "2026-05-07T12:08:34.362Z" },
+]
+
+[[package]]
+name = "pypdf"
+version = "6.12.2"
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/0a/6d/20879428577c1e57ecd41b69dc86beabf43db9287ad2e702207f8b48c751/pypdf-6.12.2.tar.gz", hash = "sha256:111669eb6680c04495ae0c113a1476e3bf93a95761d23c7406b591c80a6490b1", size = 6468184, upload-time = "2026-05-26T13:31:26.911Z" }
+wheels = [
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/9e/44/fee070a16639d9869bb6a7e0f3a1b3946da1d66f32b9260b4d19cb90d7b2/pypdf-6.12.2-py3-none-any.whl", hash = "sha256:67b2699357a1f3f4c945940ea80826349ee507c9e2577724a14b4941982c104d", size = 343865, upload-time = "2026-05-26T13:31:25.068Z" },
 ]
 
 [[package]]

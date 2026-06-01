@@ -7,9 +7,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from contextlib import asynccontextmanager
 import os
+from contextlib import asynccontextmanager
+
 from app.config import config
+import app.utils.logger  # 必须先导入，应用 Loguru 防御补丁和日志配置
 from loguru import logger
 from app.api import chat, health, file, aiops
 from app.core.milvus_client import milvus_manager
@@ -64,9 +66,15 @@ app.include_router(file.router, prefix="/api", tags=["文件管理"])
 app.include_router(aiops.router, prefix="/api", tags=["AIOps智能运维"])
 
 # 挂载静态文件
-static_dir = "static"
-app.mount("/static", StaticFiles(directory=static_dir), name="static")
+# static_dir = "static"
+# app.mount("/static", StaticFiles(directory=static_dir), name="static")
+# 动态获取 main.py 所在目录
+current_dir=os.path.dirname(__file__)   # .../app
+project_root=os.path.dirname(current_dir)  # 上一级：OnCall-Agent
 
+# 2. static 在项目根目录，和 app 同级
+static_dir=os.path.join(project_root, "static")
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 @app.get("/")
 async def root():

@@ -51,7 +51,7 @@ echo.
 
 REM 启动 FastAPI 服务
 echo [4/4] 启动 FastAPI 服务...
-start "OnCall-Agent API" %PYTHON_CMD% -m uvicorn app.main:app --host 0.0.0.0 --port 9900
+start "OnCall-Agent API" cmd /k "%PYTHON_CMD% -m uvicorn app.main:app --host 0.0.0.0 --port 9900"
 echo [信息] 等待服务启动（15秒）...
 timeout /t 15 /nobreak >nul
 echo.

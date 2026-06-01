@@ -14,10 +14,17 @@ router = APIRouter()
 
 # 文件上传后存储的路径
 UPLOAD_DIR = Path("./uploads")
-# 支持的文件类型
-ALLOWED_EXTENSIONS = ["txt", "md"]
+# 支持的文件类型（从分片服务的处理器注册表中读取）
+# 文件类型处理器会自动根据扩展名路由到对应的分片逻辑
+# - .txt: 纯文本，直接按字符数分片
+# - .md / .markdown: Markdown，先按 H1/H2 标题分，再按大小分，最后合并小块
+# - .pdf: PDF，用 pypdf 逐页提取文本后按大小分片
+# - .docx / .doc: Word 文档，用 docx2txt 提取文本后按大小分片
+ALLOWED_EXTENSIONS = ["txt", "md", "markdown", "pdf", "docx", "doc"]
 # 单个文件支持最大大小
-MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+# 文本类文件（txt, md）: 10MB
+# 二进制类文件（pdf, docx, doc）: 50MB
+MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 
 
 @router.post("/upload")

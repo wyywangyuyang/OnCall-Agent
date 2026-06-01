@@ -59,6 +59,7 @@ class RagAgentService:
             model=self.model_name,
             api_key=config.dashscope_api_key,
             temperature=0,
+            profile={"max_input_tokens": config.summarization_max_input_tokens},
         )
 
         # 创建上下文自动压缩中间件

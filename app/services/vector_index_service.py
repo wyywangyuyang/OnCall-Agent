@@ -89,8 +89,13 @@ class VectorIndexService:
 
             result.directory_path = str(dir_path)
 
-            # 获取所有支持的文件
-            files = list(dir_path.glob("*.txt")) + list(dir_path.glob("*.md"))
+            # 获取所有支持的文件（从处理器注册表中动态获取）
+            supported_exts = document_splitter_service.supported_extensions
+            files: list[Path] = []
+            for ext in supported_exts:
+                # 去掉点号，如 ".md" → "md"
+                pattern = f"*.{ext.lstrip('.')}"
+                files.extend(dir_path.glob(pattern))
 
             if not files:
                 logger.warning(f"目录中没有找到支持的文件: {target_path}")
@@ -132,13 +137,15 @@ class VectorIndexService:
 
     def index_single_file(self, file_path: str):
         """
-        索引单个文件 (使用新的 LangChain 分割器)
+        索引单个文件（自动根据文件类型选择处理器）
+
+        支持的文件类型: .txt, .md, .markdown, .pdf, .docx, .doc
 
         Args:
             file_path: 文件路径
 
         Raises:
-            ValueError: 文件不存在时抛出
+            ValueError: 文件不存在或文件类型不支持
             RuntimeError: 索引失败时抛出
         """
         path = Path(file_path).resolve()   # 将相对路径转换为绝对路径
@@ -149,22 +156,32 @@ class VectorIndexService:
         logger.info(f"开始索引文件: {path}")
 
         try:
-            # 1、读取文件内容
-            content = path.read_text(encoding='utf-8')
-            logger.info(f"读取文件: {path}, 内容长度： {len(content)} 字符")
-            # 2、删除该文件的旧数据（如果已存在）
+            # 1. 检查文件类型是否支持
+            ext = path.suffix.lower()
+            supported = document_splitter_service.supported_extensions
+            if ext not in supported:
+                raise ValueError(
+                    f"不支持的文件类型: {ext}，支持的类型: {', '.join(supported)}"
+                )
+
+            # 2. 删除该文件的旧数据（如果已存在）
             normalize_path = path.as_posix()
             vector_store_manager.delete_by_source(normalize_path)
             logger.info(f"删除旧数据（如果存在）: {normalize_path}")
-            # 3、使用文档分割器切分文档
-            documents = document_splitter_service.split_documents(content, normalize_path)
-            logger.info(f"文档分割完成: {file_path} -> {len(documents)} 个分片")
-            # 4、添加文档到向量存储
+
+            # 3. 直接传文件路径给分片服务（分片服务内部会根据扩展名自动选择处理器并读取文件）
+            documents = document_splitter_service.split_documents(normalize_path)
+            logger.info(f"文档分割完成: {file_path} → {len(documents)} 个分片")
+
+            # 4. 添加文档到向量存储
             if documents:
                 vector_store_manager.add_documents(documents)
                 logger.info(f"文件索引完成: {file_path}, 共 {len(documents)} 个分片")
             else:
                 logger.warning(f"文件内容为空或无法分割: {file_path}")
+
+        except ValueError:
+            raise
         except Exception as e:
             logger.error(f"索引文件失败: {file_path}, 错误: {e}")
             raise RuntimeError(f"索引文件失败: {e}") from e

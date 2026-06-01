@@ -8,8 +8,6 @@ from pydantic import BaseModel, Field
 from loguru import logger
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_qwq import ChatQwen
-from watchfiles import awatch
-
 from app.agent.aiops.state import PlanExecuteState
 from app.agent.aiops.utils import format_tools_description
 from app.agent.mcp_client import get_mcp_client_with_retry
@@ -176,7 +174,7 @@ async def replanner(state: PlanExecuteState) -> Dict[str, Any]:
     if plan:
         logger.info("还有剩余计划，评估下一步行动")
 
-        replanner_chain = replanner_prompt | llm.with_structured_output(Act)
+        replanner_chain = replanner_prompt | llm.with_structured_output(Act, method="json_mode")
 
         try:
             messages = [
@@ -199,8 +197,8 @@ async def replanner(state: PlanExecuteState) -> Dict[str, Any]:
                 new_steps = act.new_steps
             else:
                 # 如果返回的是字典，提取 action 和 new_steps 字段
-                action = act.get["action"]  # type: ignore
-                new_steps = act.get["new_steps"]    # type: ignore
+                action = act.get("action", "continue")
+                new_steps = act.get("new_steps", [])
 
             logger.info(f"Replanner 决策: {action}")
 
@@ -253,7 +251,7 @@ async def _generate_response(state: PlanExecuteState, llm: ChatQwen) -> Dict[str
         for step, result in past_steps
     ])
 
-    response_gen = response_prompt | llm.with_structured_output(Response)
+    response_gen = response_prompt | llm.with_structured_output(Response, method="json_mode")
 
     try:
         messages = [
