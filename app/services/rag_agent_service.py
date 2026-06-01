@@ -5,6 +5,7 @@ RAG Agent 服务 - 基于 LangGraph 的智能代理
 支持真正的流式输出和更好的模型适配。
 """
 
+import os
 from typing import Annotated, Any, AsyncGenerator, Dict, Sequence
 
 from langchain.agents import create_agent
@@ -14,7 +15,9 @@ from langchain_core.messages import (
     HumanMessage,
     SystemMessage,
 )
-from langgraph.checkpoint.memory import MemorySaver
+import sqlite3
+
+from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph.message import add_messages
 from loguru import logger
 from typing_extensions import TypedDict
@@ -77,8 +80,17 @@ class RagAgentService:
         # MCP 客户端（延迟初始化，使用全局管理）
         self.mcp_tools: list = []
 
-        # 创建内存检查点（用于会话管理）
-        self.checkpointer = MemorySaver()
+        # 创建 SQLite 持久化检查点（用于会话管理）
+        # 数据库文件路径：{项目根目录}/{sqlite_db_dir}/{sqlite_db_name}
+        # 例如：OnCall-Agent/db/oncall_conversation_memory.db
+        db_dir = config.sqlite_db_dir
+        os.makedirs(db_dir, exist_ok=True)
+        db_path = os.path.join(db_dir, config.sqlite_db_name)
+        # check_same_thread=False 允许异步代码安全地访问 SQLite
+        sqlite_conn = sqlite3.connect(db_path, check_same_thread=False)
+        self.checkpointer = SqliteSaver(sqlite_conn)
+        self.checkpointer.setup()  # 初始化数据库表结构
+        logger.info(f"SQLite 对话记忆数据库已连接: {db_path}")
 
         # Agent 初始化（会在异步方法中完成）
         self.agent = None

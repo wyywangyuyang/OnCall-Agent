@@ -70,6 +70,10 @@ class Settings(BaseSettings):
     tencent_cloud_secret_key: str = ""
     tencent_cloud_region: str = "ap-beijing"
 
+    # 对话记忆持久化配置（SQLite）
+    sqlite_db_dir: str = "db"                                # 数据库文件夹名（相对于项目根目录）
+    sqlite_db_name: str = "oncall_conversation_memory.db"    # 数据库文件名
+
     @property
     def mcp_servers(self) -> Dict[str, Dict[str, Any]]:
         """获取完整的 MCP 服务器配置"""

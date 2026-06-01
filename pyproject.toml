@@ -33,6 +33,7 @@ dependencies = [
     "tencentcloud-sdk-python>=3.1.92",
     "pypdf>=6.12.2",
     "docx2txt>=0.9",
+    "langgraph-checkpoint-sqlite>=3.1.0",
 ]
 
 [project.optional-dependencies]

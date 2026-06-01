@@ -5,13 +5,17 @@
 
 from typing import AsyncGenerator, Dict, Any
 from langgraph.graph import StateGraph, END
-from langgraph.checkpoint.memory import MemorySaver
+import os
+import sqlite3
+
+from langgraph.checkpoint.sqlite import SqliteSaver
 from loguru import logger
 
 from app.agent.aiops.executor import executor
 from app.agent.aiops.planner import planner
 from app.agent.aiops.replanner import replanner
 from app.agent.aiops.state import PlanExecuteState
+from app.config import config
 
 # 节点名称常量
 NODE_PLANNER = "planner"
@@ -24,7 +28,16 @@ class AIOpsService:
 
     def __init__(self):
         """初始化服务"""
-        self.checkpointer = MemorySaver()
+        # 创建 SQLite 持久化检查点（用于会话管理）
+        # 数据库文件路径：{项目根目录}/{sqlite_db_dir}/{sqlite_db_name}
+        db_dir = config.sqlite_db_dir
+        os.makedirs(db_dir, exist_ok=True)
+        db_path = os.path.join(db_dir, config.sqlite_db_name)
+        # check_same_thread=False 允许异步代码安全地访问 SQLite
+        sqlite_conn = sqlite3.connect(db_path, check_same_thread=False)
+        self.checkpointer = SqliteSaver(sqlite_conn)
+        self.checkpointer.setup()  # 初始化数据库表结构
+        logger.info(f"SQLite 对话记忆数据库已连接: {db_path}")
         self.graph = self._build_graph()
         logger.info("Plan-Execute-Replan Service 初始化完成")
 
