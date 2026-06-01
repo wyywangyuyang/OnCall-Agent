@@ -28,19 +28,45 @@ def retrieve_knowledge(query: str) -> Tuple[str, List[Document]]:
 
         # 从向量数据库中检索相关文档
         vector_store = vector_store_manager.get_vector_store()
-        retriever = vector_store.as_retriever(
-            search_kwargs={"k": config.rag_top_k}
-        )
-        docs = retriever.invoke(query)
 
-        if not docs:
-            logger.warning("知识库检索工具未找到相关文档")
-            return "未找到相关信息。", []
+        if config.rerank_enabled:
+            # ========== 重排模式 ==========
+            # Step 1: 扩大召回 — 多召回一些候选文档
+            retrieve_k = config.rerank_retrieve_top_k
+            logger.info(f"重排模式: 先召回 {retrieve_k} 篇候选文档")
+
+            retriever = vector_store.as_retriever(
+                search_kwargs={"k": retrieve_k}
+            )
+            docs = retriever.invoke(query)
+
+            if not docs:
+                logger.warning("知识库检索工具未找到相关文档")
+                return "未找到相关信息。", []
+
+            logger.info(f"向量检索召回 {len(docs)} 篇文档，开始重排序")
+
+            # Step 2: Rerank — 用 Rerank 模型精选最相关的文档
+            from app.services.reranker_service import reranker_service
+            docs = reranker_service.rerank(query, docs, top_n=config.rag_top_k)
+
+            logger.info(f"重排序后返回 {len(docs)} 篇文档")
+        else:
+            # ========== 原始模式（不重排）==========
+            logger.info(f"普通模式: 召回 {config.rag_top_k} 篇文档（不重排）")
+            retriever = vector_store.as_retriever(
+                search_kwargs={"k": config.rag_top_k}
+            )
+            docs = retriever.invoke(query)
+
+            if not docs:
+                logger.warning("知识库检索工具未找到相关文档")
+                return "未找到相关信息。", []
 
         # 格式化文档为上下文
         context = format_docs(docs)
 
-        logger.info(f"检索到{len(docs)}个相关文档")
+        logger.info(f"检索完成, 返回 {len(docs)} 个相关文档")
         return context, docs
 
     except Exception as e:

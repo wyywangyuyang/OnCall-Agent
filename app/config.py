@@ -41,6 +41,12 @@ class Settings(BaseSettings):
     rag_top_k: int = 3
     rag_model: str = "deepseek-v4-pro"  # 使用快速响应模型，不带扩展思考
 
+    # Rerank 重排序配置
+    # 开启后，会先多召回一些文档，再用 Rerank 模型精选出最相关的
+    rerank_enabled: bool = True          # 是否启用重排序
+    rerank_model: str = "qwen3-rerank"  # 重排序模型（gte-rerank-v2 已于 2026-05-30 下线）
+    rerank_retrieve_top_k: int = 10     # 召回阶段取多少篇文档参与重排
+
     # 文档分块配置
     chunk_max_size: int = 800
     chunk_overlap: int = 100
