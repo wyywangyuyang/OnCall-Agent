@@ -8,14 +8,14 @@ RAG Agent 服务 - 基于 LangGraph 的智能代理
 from typing import Annotated, Any, AsyncGenerator, Dict, Sequence
 
 from langchain.agents import create_agent
+from langchain.agents.middleware import SummarizationMiddleware
 from langchain_core.messages import (
     BaseMessage,
     HumanMessage,
-    RemoveMessage,
     SystemMessage,
 )
 from langgraph.checkpoint.memory import MemorySaver
-from langgraph.graph.message import REMOVE_ALL_MESSAGES, add_messages
+from langgraph.graph.message import add_messages
 from loguru import logger
 from typing_extensions import TypedDict
 from langchain_qwq import ChatQwen
@@ -31,51 +31,6 @@ class AgentState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]
 
 
-def trim_messages_middleware(state: AgentState) -> dict[str, Any] | None:
-    """
-    修剪消息历史，只保留最近的几条消息以适应上下文窗口
-
-    策略：
-    - 保留第一条系统消息（System Message）
-    - 保留最近的 6 条消息（3 轮对话）
-    - 当消息少于等于 7 条时，不做修剪
-
-    Args:
-        state: Agent 状态
-
-    Returns:
-        包含修剪后消息的字典，如果无需修剪则返回 None
-    """
-    messages = state["messages"]
-
-    # 如果消息数量较少，无需修剪
-    if len(messages) <= 7:
-        return None
-
-    # 提取第一条系统消息
-    first_msg = messages[0]
-
-    # 保留最近的 6 条消息（确保包含完整的对话轮次）
-    recent_messages = messages[-6:] if len(messages) % 2 == 0 else messages[-7:]
-
-    # 构建新的消息列表
-    new_messages = [first_msg] + list(recent_messages)
-
-    logger.debug(f"修剪消息历史: {len(messages)} -> {len(new_messages)} 条")
-
-    # RemoveMessage: 是 LangChain/LangGraph 中的一个特殊消息类型，用于从消息历史中删除消息
-    # REMOVE_ALL_MESSAGES: 是一个特殊的常量，表示"删除所有现有消息"
-    # 组合使用: [RemoveMessage(id=REMOVE_ALL_MESSAGES), *new_messages] 的含义是：
-    # 先删除所有旧消息
-    # 然后添加新的消息列表
-    return {
-        "messages": [
-            RemoveMessage(id=REMOVE_ALL_MESSAGES),
-            *new_messages
-        ]
-    }
-
-
 class RagAgentService:
     """RAG Agent 服务 - 使用 LangGraph + ChatQwen 原生集成"""
 
@@ -89,12 +44,30 @@ class RagAgentService:
         self.streaming = streaming
         self.system_prompt = self._build_system_prompt()
 
-
+        # 创建主模型（用于对话），传入 profile 让 SummarizationMiddleware 知道上下文窗口大小
         self.model = ChatQwen(
             model=self.model_name,
             api_key=config.dashscope_api_key,
             temperature=0.7,
             streaming=streaming,
+            profile={"max_input_tokens": config.summarization_max_input_tokens},
+        )
+
+        # 创建摘要模型（用于生成对话压缩摘要）
+        # temperature=0 确保摘要质量稳定、一致
+        self.summary_model = ChatQwen(
+            model=self.model_name,
+            api_key=config.dashscope_api_key,
+            temperature=0,
+        )
+
+        # 创建上下文自动压缩中间件
+        # trigger: 当对话 token 数达到模型最大上下文窗口的 70% 时触发
+        # keep: 压缩后保留最近 20 条消息（大约 10 轮对话）
+        self.summarization_middleware = SummarizationMiddleware(
+            model=self.summary_model,
+            trigger=("fraction", config.summarization_trigger_fraction),
+            keep=("messages", config.summarization_keep_messages),
         )
 
         # 定义基础工具
@@ -110,7 +83,11 @@ class RagAgentService:
         self.agent = None
         self._agent_initialized = False
 
-        logger.info(f"RAG Agent 服务初始化完成 (ChatQwen), model={self.model_name}, streaming={streaming}")
+        logger.info(
+            f"RAG Agent 服务初始化完成 (ChatQwen), model={self.model_name}, streaming={streaming}, "
+            f"summarization={'启用' if config.summarization_enabled else '禁用'}, "
+            f"触发阈值={config.summarization_trigger_fraction*100}%"
+        )
 
     async def _initialize_agent(self):
         """异步初始化 Agent（包括 MCP 工具）"""
@@ -130,10 +107,17 @@ class RagAgentService:
         # 合并所有工具
         all_tools = self.tools + self.mcp_tools
 
+        # 构建中间件列表
+        middlewares = []
+        if config.summarization_enabled:
+            middlewares.append(self.summarization_middleware)
+            logger.info("上下文自动压缩中间件已启用")
+
         self.agent = create_agent(
             self.model,
             tools=all_tools,
             checkpointer=self.checkpointer,
+            middleware=middlewares,
         )
 
         self._agent_initialized = True

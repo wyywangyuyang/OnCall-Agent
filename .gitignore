@@ -79,3 +79,5 @@ dmypy.json
 # Ruff
 .ruff_cache/
 
+# Claude document
+docs/

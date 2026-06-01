@@ -41,6 +41,14 @@ class Settings(BaseSettings):
     rag_top_k: int = 3
     rag_model: str = "deepseek-v4-pro"  # 使用快速响应模型，不带扩展思考
 
+    # 上下文自动压缩（Summarization）配置
+    # 当对话历史的 token 数量达到模型最大上下文窗口的指定百分比时，
+    # 自动使用大模型对前面的内容进行压缩总结，保留最近的消息不变
+    summarization_enabled: bool = True       # 是否启用自动压缩
+    summarization_trigger_fraction: float = 0.7  # 触发阈值（70% 上下文窗口时触发）
+    summarization_keep_messages: int = 20    # 保留最近多少条消息不被压缩
+    summarization_max_input_tokens: int = 1_048_576  # 模型最大上下文窗口（deepseek-v4-pro 为 1M tokens）
+
     # Rerank 重排序配置
     # 开启后，会先多召回一些文档，再用 Rerank 模型精选出最相关的
     rerank_enabled: bool = True          # 是否启用重排序
