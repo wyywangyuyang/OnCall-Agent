@@ -83,6 +83,14 @@ class Settings(BaseSettings):
     vector_recall_top_k: int = 10        # 向量路召回数量（两路召回时使用，与 rerank_retrieve_top_k 独立）
     rrf_k: int = 60                      # RRF 融合常数 k，用于平滑排名差异
 
+    # Query 改写配置
+    # Phase 1: 书面语改写 — 口语→书面语，术语标准化，指代消解，语义补全（始终执行）
+    # Phase 2: 多查询扩展 — 从正式查询生成多角度变体，扩大召回覆盖面（可选）
+    query_rewrite_enabled: bool = True              # Query 改写总开关（False 时跳过全部改写）
+    multi_query_expansion_enabled: bool = True       # 多查询扩展子开关（仅 query_rewrite_enabled=True 时生效）
+    multi_query_expansion_count: int = 3             # 多查询扩展生成的变体数量
+    query_rewrite_model: str = "deepseek-v4-pro"    # 改写使用的 LLM 模型
+
     @property
     def mcp_servers(self) -> Dict[str, Dict[str, Any]]:
         """获取完整的 MCP 服务器配置"""
