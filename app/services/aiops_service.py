@@ -6,9 +6,8 @@
 from typing import AsyncGenerator, Dict, Any
 from langgraph.graph import StateGraph, END
 import os
-import sqlite3
 
-from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from loguru import logger
 
 from app.agent.aiops.executor import executor
@@ -27,19 +26,31 @@ class AIOpsService:
     """通用 Plan-Execute-Replan 服务"""
 
     def __init__(self):
-        """初始化服务"""
-        # 创建 SQLite 持久化检查点（用于会话管理）
-        # 数据库文件路径：{项目根目录}/{sqlite_db_dir}/{sqlite_db_name}
+        """初始化服务（异步组件延迟到首次请求时完成）"""
+        # SQLite 持久化检查点（异步初始化，在 _ensure_initialized 中完成）
         db_dir = config.sqlite_db_dir
         os.makedirs(db_dir, exist_ok=True)
-        db_path = os.path.join(db_dir, config.sqlite_db_name)
-        # check_same_thread=False 允许异步代码安全地访问 SQLite
-        sqlite_conn = sqlite3.connect(db_path, check_same_thread=False)
-        self.checkpointer = SqliteSaver(sqlite_conn)
-        self.checkpointer.setup()  # 初始化数据库表结构
-        logger.info(f"SQLite 对话记忆数据库已连接: {db_path}")
+        self.db_path = os.path.join(db_dir, config.sqlite_db_name)
+        self.checkpointer = None  # 延迟到 _ensure_initialized 中异步初始化
+        self.graph = None         # 延迟编译（需要 checkpointer 就绪）
+        self._initialized = False
+        logger.info("Plan-Execute-Replan Service 初始化完成（异步组件延迟加载）")
+
+    async def _ensure_initialized(self):
+        """确保异步组件（checkpointer、graph）已初始化"""
+        if self._initialized:
+            return
+
+        # ---- 初始化异步 SQLite 检查点 ----
+        import aiosqlite
+        conn = await aiosqlite.connect(self.db_path)
+        self.checkpointer = AsyncSqliteSaver(conn)
+        await self.checkpointer.setup()
+        logger.info(f"SQLite 对话记忆数据库已连接 (async): {self.db_path}")
+
+        # ---- 编译工作流图 ----
         self.graph = self._build_graph()
-        logger.info("Plan-Execute-Replan Service 初始化完成")
+        self._initialized = True
 
     def _build_graph(self):
         """构建 Plan-Execute-Replan 工作流"""
@@ -111,6 +122,9 @@ class AIOpsService:
         """
         logger.info(f"[会话 {session_id}] 开始执行任务: {user_input}")
 
+        # 确保异步组件已初始化
+        await self._ensure_initialized()
+
         try:
             # 初始化状态
             initial_state: PlanExecuteState = {
@@ -146,8 +160,8 @@ class AIOpsService:
                     elif node_name == NODE_REPLANNER:
                         yield self._format_replanner_event(node_output)
 
-            # 获取最终状态
-            final_state = self.graph.get_state(config_dict)
+            # 获取最终状态（异步 checkpointer 需要使用 aget_state）
+            final_state = await self.graph.aget_state(config_dict)
             final_response = ""
 
             # 安全地获取响应（处理 values 可能为 None 的情况）
