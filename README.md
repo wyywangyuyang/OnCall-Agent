@@ -69,53 +69,65 @@ curl -X POST "http://localhost:9900/api/aiops" \
 ## 📁 项目结构
 
 ```
-super_biz_agent_py/
+OnCall-Agent/
 ├── app/                                    # 应用核心
-│   ├── __init__.py                         # 包初始化（自动加载日志配置）
 │   ├── main.py                             # FastAPI 应用入口
-│   ├── config.py                           # 配置管理（环境变量、MCP 服务器配置）
+│   ├── config.py                           # 配置管理（环境变量、多路召回、Query 改写等）
 │   ├── api/                                # API 路由层
-│   │   ├── __init__.py
 │   │   ├── chat.py                         # 对话接口（RAG 聊天）
 │   │   ├── aiops.py                        # AIOps 接口（故障诊断）
 │   │   ├── file.py                         # 文件管理（文档上传）
 │   │   └── health.py                       # 健康检查（服务状态）
 │   ├── services/                           # 业务服务层
-│   │   ├── __init__.py
 │   │   ├── rag_agent_service.py            # RAG Agent（LangGraph 状态图）
 │   │   ├── aiops_service.py                # AIOps 服务（计划-执行-重规划）
 │   │   ├── vector_store_manager.py         # 向量存储管理器
-│   │   ├── vector_embedding_service.py     # 向量embedding服务
-│   │   ├── vector_index_service.py         # 向量索引服务
-│   │   ├── vector_search_service.py        # 向量检索服务
+│   │   ├── vector_embedding_service.py     # 向量 Embedding 服务（DashScope）
+│   │   ├── vector_index_service.py         # 向量索引服务 + BM25 FTS5 同步写入
+│   │   ├── vector_search_service.py        # 向量检索服务（Milvus）
+│   │   ├── bm25_index_service.py           # BM25 关键词检索服务（SQLite FTS5）
+│   │   ├── multi_recall_service.py         # 多路召回编排（向量+BM25→RRF 融合）
+│   │   ├── reranker_service.py             # Rerank 重排序服务（DashScope qwen3-rerank）
+│   │   ├── query_rewriter.py               # Query 改写服务（书面语改写+多查询扩展）
 │   │   └── document_splitter_service.py    # 文档分割服务
 │   ├── agent/                              # Agent 模块
-│   │   ├── __init__.py
 │   │   ├── mcp_client.py                   # MCP 客户端（工具调用）
 │   │   └── aiops/                          # AIOps 核心逻辑
-│   │       ├── __init__.py
 │   │       ├── planner.py                  # 计划制定器
 │   │       ├── executor.py                 # 步骤执行器
 │   │       ├── replanner.py                # 重规划器
 │   │       ├── state.py                    # 状态定义
 │   │       └── utils.py                    # 工具函数
 │   ├── models/                             # 数据模型层
-│   │   ├── __init__.py
 │   │   ├── aiops.py                        # AIOps 模型
 │   │   ├── document.py                     # 文档模型
 │   │   ├── request.py                      # 请求模型
 │   │   └── response.py                     # 响应模型
 │   ├── tools/                              # Agent 工具集
-│   │   ├── __init__.py
-│   │   ├── knowledge_tool.py               # 知识库查询工具
+│   │   ├── knowledge_tool.py               # 知识库查询工具（改写→并发检索→合并去重）
 │   │   └── time_tool.py                    # 时间工具
 │   ├── core/                               # 核心组件
-│   │   ├── __init__.py
 │   │   ├── llm_factory.py                  # LLM 工厂（模型管理）
 │   │   └── milvus_client.py                # Milvus 客户端
 │   └── utils/                              # 工具类
-│       ├── __init__.py
 │       └── logger.py                       # 日志配置（Loguru）
+├── evals/                                  # RAGAS 评测模块
+│   ├── __init__.py                         # 模块入口
+│   ├── dataset_builder.py                 # 评测数据集构建器（LLM 自动生成 QA 对）
+│   ├── ragas_evaluator.py                 # RAGAS 评测引擎（检索+生成 6 项指标）
+│   ├── run_eval.py                         # CLI 统一入口脚本
+│   ├── datasets/                           # 评测数据集目录
+│   └── reports/                            # 评测报告输出目录
+├── db/                                     # 数据持久化
+│   └── oncall_conversation_memory.db       # SQLite 对话记忆数据库
+│   └── bm25_index.db                       # 存储BM25关键词检索结果
+├── docs/                                   # 开发文档
+│   ├── multi-recall-implementation.md      # 多路召回实现文档
+│   ├── query-rewrite-implementation.md     # Query 改写实现文档
+│   ├── ragas-evaluation-guide.md           # RAGAS 评测指南
+│   ├── context-compression-guide.md        # 上下文压缩指南
+│   ├── multi-file-support-guide.md         # 多文件支持指南
+│   └── 对话记忆持久化实现文档.md             # 对话记忆持久化文档
 ├── static/                                 # Web 前端（纯静态）
 │   ├── index.html                          # 主页面
 │   ├── app.js                              # 前端逻辑
@@ -134,7 +146,7 @@ super_biz_agent_py/
 ├── vector-database.yml                     # Milvus Docker Compose 配置
 ├── pyproject.toml                          # 项目配置（依赖、元数据）
 ├── uv.lock                                 # uv 依赖锁定文件
-├── .gitignore                              # 忽略提交git文件配置
+├── .gitignore                              # 忽略提交 git 文件配置
 ├── start-windows.bat                       # 启动服务脚本
 ├── stop-windows.bat                        # 停止服务脚本
 └── README.md                               # 项目说明
