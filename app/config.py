@@ -74,6 +74,15 @@ class Settings(BaseSettings):
     sqlite_db_dir: str = "db"                                # 数据库文件夹名（相对于项目根目录）
     sqlite_db_name: str = "oncall_conversation_memory.db"    # 数据库文件名
 
+    # 多路召回配置
+    # 两路召回：向量检索（Milvus）+ BM25 关键词检索（SQLite FTS5）
+    # 两路结果通过 RRF 算法融合后送入 Rerank 精排
+    bm25_enabled: bool = True            # 是否启用 BM25 关键词检索路（False 时回退到纯向量路）
+    bm25_top_k: int = 10                 # BM25 路召回数量
+    bm25_db_name: str = "bm25_index.db"  # BM25 FTS5 数据库文件名
+    vector_recall_top_k: int = 10        # 向量路召回数量（两路召回时使用，与 rerank_retrieve_top_k 独立）
+    rrf_k: int = 60                      # RRF 融合常数 k，用于平滑排名差异
+
     @property
     def mcp_servers(self) -> Dict[str, Dict[str, Any]]:
         """获取完整的 MCP 服务器配置"""

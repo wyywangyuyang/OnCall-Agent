@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional
 
 from loguru import logger
 
+from app.config import config
 from app.services.document_splitter_service import document_splitter_service
 from app.services.vector_store_manager import vector_store_manager
 
@@ -176,6 +177,11 @@ class VectorIndexService:
             # 4. 添加文档到向量存储
             if documents:
                 vector_store_manager.add_documents(documents)
+
+                # 5. 同步写入 BM25 FTS5 索引（如果启用）
+                if config.bm25_enabled:
+                    self._sync_bm25_add(documents)
+
                 logger.info(f"文件索引完成: {file_path}, 共 {len(documents)} 个分片")
             else:
                 logger.warning(f"文件内容为空或无法分割: {file_path}")
@@ -185,6 +191,25 @@ class VectorIndexService:
         except Exception as e:
             logger.error(f"索引文件失败: {file_path}, 错误: {e}")
             raise RuntimeError(f"索引文件失败: {e}") from e
+
+    def _sync_bm25_add(self, documents) -> None:
+        """
+        将文档分片同步写入 BM25 FTS5 索引
+
+        从 doc.metadata["chunk_id"] 读取 ID（由 vector_store_manager.add_documents 写入），
+        保证与 Milvus 主键一致。
+
+        Args:
+            documents: 已完成 Milvus 写入的文档列表（metadata 中已含 chunk_id）
+        """
+        try:
+            from app.services.bm25_index_service import bm25_index_service
+
+            chunk_ids = [doc.metadata["chunk_id"] for doc in documents]
+            bm25_index_service.add_chunks(documents, chunk_ids)
+        except Exception as e:
+            logger.warning(f"BM25 索引同步写入失败（不影响主流程）: {e}")
+
 
 # 全局单例
 vector_index_service = VectorIndexService()

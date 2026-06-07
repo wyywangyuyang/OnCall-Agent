@@ -86,6 +86,10 @@ class VectorStoreManager:
                 # [...] -> 将所有生成的 UUID 字符串组成列表
             ids = [str(uuid.uuid4()) for _ in documents]
 
+            # 将 chunk_id 回写到文档 metadata，确保后续检索/BM25 同步时能追溯 ID
+            for doc, doc_id in zip(documents, ids):
+                doc.metadata["chunk_id"] = doc_id
+
             # LangChain Milvus 的 add_documents 会自动调用 embedding_function
             # 并进行批量处理，性能更好
             result_ids = self.vector_store.add_documents(documents, ids=ids)
@@ -120,6 +124,14 @@ class VectorStoreManager:
 
             result = collection.delete(expr)
             deleted_count = result.delete_count if hasattr(result, "delete_count") else 0
+
+            # 同步删除 BM25 索引（如果启用）
+            if config.bm25_enabled and deleted_count > 0:
+                try:
+                    from app.services.bm25_index_service import bm25_index_service
+                    bm25_index_service.delete_by_source(file_path)
+                except Exception as e:
+                    logger.warning(f"BM25 索引同步删除失败（不影响主流程）: {e}")
 
             logger.info(f"删除文件旧数据: {file_path}, 删除数量: {deleted_count}")
             return deleted_count

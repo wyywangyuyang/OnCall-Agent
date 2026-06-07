@@ -31,20 +31,35 @@ def retrieve_knowledge(query: str) -> Tuple[str, List[Document]]:
 
         if config.rerank_enabled:
             # ========== 重排模式 ==========
-            # Step 1: 扩大召回 — 多召回一些候选文档
-            retrieve_k = config.rerank_retrieve_top_k
-            logger.info(f"重排模式: 先召回 {retrieve_k} 篇候选文档")
+            if config.bm25_enabled:
+                # ---- 多路召回: 向量 + BM25 → RRF 融合 ----
+                logger.info(
+                    f"多路召回模式: 向量路K={config.vector_recall_top_k}, "
+                    f"BM25路K={config.bm25_top_k}"
+                )
+                from app.services.multi_recall_service import multi_recall_service
+                docs = multi_recall_service.recall(query)
 
-            retriever = vector_store.as_retriever(
-                search_kwargs={"k": retrieve_k}
-            )
-            docs = retriever.invoke(query)
+                if not docs:
+                    logger.warning("多路召回未找到相关文档")
+                    return "未找到相关信息。", []
 
-            if not docs:
-                logger.warning("知识库检索工具未找到相关文档")
-                return "未找到相关信息。", []
+                logger.info(f"多路召回返回 {len(docs)} 篇候选文档，开始重排序")
+            else:
+                # ---- 单路向量召回（原有逻辑，不改动）----
+                retrieve_k = config.rerank_retrieve_top_k
+                logger.info(f"重排模式: 先召回 {retrieve_k} 篇候选文档")
 
-            logger.info(f"向量检索召回 {len(docs)} 篇文档，开始重排序")
+                retriever = vector_store.as_retriever(
+                    search_kwargs={"k": retrieve_k}
+                )
+                docs = retriever.invoke(query)
+
+                if not docs:
+                    logger.warning("知识库检索工具未找到相关文档")
+                    return "未找到相关信息。", []
+
+                logger.info(f"向量检索召回 {len(docs)} 篇文档，开始重排序")
 
             # Step 2: Rerank — 用 Rerank 模型精选最相关的文档
             from app.services.reranker_service import reranker_service
