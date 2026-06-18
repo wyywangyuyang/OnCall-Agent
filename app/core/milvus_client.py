@@ -196,10 +196,15 @@ class MilvusClientManager:
         if self._collection is None:
             raise RuntimeError("Collection 未初始化")
 
+        # index_params = {
+        #     "metric_type": "L2",  # 欧氏距离
+        #     "index_type": "IVF_FLAT",
+        #     "params": {"nlist": 128},
+        # }
         index_params = {
-            "metric_type": "L2",  # 欧氏距离
-            "index_type": "IVF_FLAT",
-            "params": {"nlist": 128},
+            "metric_type": "COSINE",  # 余弦相似度（文本嵌入最佳实践）
+            "index_type": "HNSW",  # 高召回、低延迟，适合小规模数据集
+            "params": {"M": 16, "efConstruction": 256},
         }
 
         _ = self._collection.create_index(
