@@ -204,7 +204,7 @@ class MilvusClientManager:
         index_params = {
             "metric_type": "COSINE",  # 余弦相似度（文本嵌入最佳实践）
             "index_type": "HNSW",  # 高召回、低延迟，适合小规模数据集
-            "params": {"M": 16, "efConstruction": 256},
+            "params": {"M": 16, "efConstruction": 128},
         }
 
         _ = self._collection.create_index(
