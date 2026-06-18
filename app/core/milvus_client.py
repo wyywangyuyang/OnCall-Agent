@@ -198,7 +198,8 @@ class MilvusClientManager:
 
         # index_params = {
         #     "metric_type": "L2",  # 欧氏距离
-        #     "index_type": "IVF_FLAT",
+        #     "index_type": "IVF_FLAT",  # 无量化（float32 全量存储）
+        #     "index_type": "IVF_SQ8",  # 标量量化，与IVF_FLAT二选一，标量量化（float32 → int8）
         #     "params": {"nlist": 128},
         # }
         index_params = {
